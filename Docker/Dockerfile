@@ -10,6 +10,7 @@ RUN apt-get update -y\
 && R -e "install.packages('data.table')"\
 && R -e "install.packages('ggplot2')"\
 && R -e "install.packages('synapser', repos = c('http://ran.synapse.org', 'http://cran.fhcrc.org'))"\
+&& R -e "install.packages('devtools')"\
 && R -e "devtools::install_github('Sage-Bionetworks/knit2synapse')"\
 && R -e "install.packages('knitr')"\
 && R -e "BiocManager::install('limma')"\
