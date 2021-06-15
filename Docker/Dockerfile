@@ -6,17 +6,17 @@ RUN apt-get update -y\
 && apt-get install -y git\
 && R -e "install.packages('BiocManager')"\
 && R -e "BiocManager::install('biomaRt')"\
-&& R -e "install.packages(‘caret’)”\
+&& R -e "install.packages('caret')"\
 && R -e "install.packages('data.table')"\
 && R -e "install.packages('ggplot2')"\
 && R -e "install.packages('synapser', repos = c('http://ran.synapse.org', 'http://cran.fhcrc.org'))"\
 && R -e "devtools::install_github('Sage-Bionetworks/knit2synapse')"\
 && R -e "install.packages('knitr')"\
 && R -e "BiocManager::install('limma')"\
-&& R -e "install.packages(‘Matrix’)”\
-&& R -e "install.packages(‘patchwork’)”\
+&& R -e "install.packages('Matrix')"\
+&& R -e "install.packages('patchwork')"\
 && R -e "install.packages('RColorBrewer')"\
-&& R -e "install.packages(‘Seurat’)”\
+&& R -e "install.packages('Seurat')"\
 && R -e "install.packages('tidyverse')"
 
 
