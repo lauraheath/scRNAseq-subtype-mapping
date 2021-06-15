@@ -17,7 +17,7 @@ RUN apt-get update -y\
 && R -e "install.packages(‘patchwork’)”\
 && R -e "install.packages('RColorBrewer')"\
 && R -e "install.packages(‘Seurat’)”\
-&& R -e "install.packages('tidyverse')"\
+&& R -e "install.packages('tidyverse')"
 
 
 run mkdir /home/lheath/celltype_mapping \ 
