@@ -2,7 +2,7 @@ FROM rocker/rstudio:4.1.0
 
 RUN apt-get update -y\
 && apt-get install -y dpkg-dev zlib1g-dev libssl-dev libffi-dev zlib1g-dev libbz2-dev liblzma-dev build-essential libglpk40\
-&& apt-get install -y curl libcurl4-openssl-dev\
+&& apt-get install -y curl libcurl4-openssl-dev lixml2 libxml2-dev\
 && apt-get install -y git\
 && R -e "install.packages('BiocManager')"\
 && R -e "BiocManager::install('biomaRt')"\
