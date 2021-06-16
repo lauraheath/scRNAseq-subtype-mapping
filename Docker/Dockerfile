@@ -15,5 +15,5 @@ RUN apt-get update -y\
 && R -e "install.packages('tidyverse')"
 
 
-run mkdir /home/lheath/celltype_mapping \ 
+run mkdir -p /home/lheath/celltype_mapping \ 
 && git clone https://github.com/lauraheath/scRNAseq-subtype-mapping.git /home/lheath/celltype_mapping
