@@ -1,3 +1,4 @@
+synapser::synLogin(email="lheath", password="Q54!A!&9iCfl")
 #upload the gene expression matrix from allen institute's M1 reference data:
 
 p1 <- synapser::synGet('syn24182839')
@@ -8,8 +9,8 @@ M1ref$sample_name<-NULL
 M1ref <- as.matrix(M1ref)
 M1ref <- Matrix(M1ref, sparse=TRUE)
 M1ref <- t(M1ref)
-saveRDS(M1ref, file="~/scRNAseq-subtype-mapping/data/M1ref_counts.rds")
-M1ref <- readRDS(file="~/scRNAseq-subtype-mapping/data/M1ref_counts.rds")
+saveRDS(M1ref, file="~/celltype_mapping/data/M1ref_counts.rds")
+M1ref <- readRDS(file="~/celltype_mapping/data/M1ref_counts.rds")
 
 #read in metadata for cells:
 p2 <- synapser::synGet('syn24182843')
@@ -51,27 +52,26 @@ DimPlot(dat, group.by = "class_label", reduction="umap", label = TRUE, repel=TRU
 #mathys_meta <- pData(mathys)
 
 # non-normalized count matrix for mathys:
-mathys <- readRDS(file="~/scRNAseq-subtype-mapping/data/mathys_notnormalized_counts.rds")
-#p <- synapser::synGet('syn18686381')
-#counts <- readMM(p$path)
+#mathys <- readRDS(file="~/scRNAseq-subtype-mapping/data/mathys_notnormalized_counts.rds")
+p <- synapser::synGet('syn18686381')
+counts <- readMM(p$path)
 #get all mathys metadata
-mathys_meta <- readRDS(file="~/scRNAseq-subtype-mapping/data/mathys_metadata.rds")
-#p2 <- synapser::synGet('syn24171852')
-#mathys_meta <- read.delim(p2$path,stringsAsFactors = F)
-#mathys_meta <- readRDS(p2$path)
+#mathys_meta <- readRDS(file="~/scRNAseq-subtype-mapping/data/mathys_metadata.rds")
+p2 <- synapser::synGet('syn24171852')
+mathys_meta <- readRDS(p2$path)
 #get short gene names list and make them into rownames on counts file: filtered_gene_row_names.txt
-#p3 <- synapser::synGet('syn18686382')
-#rownames(counts) <- readLines(p3$path)
-#colnames(counts) <- Labels[,1]
+p3 <- synapser::synGet('syn18686382')
+rownames(counts) <- readLines(p3$path)
+colnames(counts) <- mathys_meta[,1]
 
 #save the data structures:
-# saveRDS(counts, file="~/scAD_analysis/data/mathys_notnormalized_counts.rds")
+saveRDS(counts, file="~/scAD_analysis/data/mathys_notnormalized_counts.rds")
 # saveRDS(mathys_meta, file="~/scAD_analysis/data/mathys_metadata.rds")
 # saveRDS(dat, file="~/scAD_analysis/data/M1reference_seurat.RDS")
 
 
-mathys2 <- CreateSeuratObject(counts = mathys, project = "Mapping", min.cells = 3, min.features = 200)
-head(mathys2@meta.data, 5)
+mathys2 <- CreateSeuratObject(counts = counts, project = "Mapping", min.cells = 3, min.features = 200)
+head(mathys2@meta.data, 20)
 
 mathys_meta <- as.data.frame(mathys_meta)
 rownames(mathys_meta)<-colnames(mathys2)
@@ -123,29 +123,21 @@ hist(mathys3$predicted.subclass_label.score)
 hist(mathys3$predicted.subclass_label.score)
 
 
+
+#######################################
+mathys4 <- merge(mathys2.batches[[1]], mathys2.batches[2:length(mathys2.batches)], merge.dr = "ref.pca")
 dat$id <- 'reference'
-mathys3$id <- 'query'
-refquery <- merge(dat, mathys3)
-refquery[["pca"]] <- merge(dat[["pca"]], mathys3[["pca"]])
-refquery <- RunUMAP(refquery, reduction = 'pca', dims = 1:20)
-DimPlot(refquery, group.by = 'id')
-DimPlot(refquery, group.by = 'predicted.subclass_label')
-DimPlot(refquery, group.by = 'broad.cell.type')
-
-dat2$id <- 'reference'
-mathys3$id <- 'query'
-refquery <- merge(dat2, mathys3)
-refquery[["pca"]] <- merge(dat2[["pca"]], mathys3[["ref.pca"]])
-refquery <- RunUMAP(refquery, reduction = 'pca', dims = 1:20)
+mathys4$id <- 'query'
+refquery <- merge(dat, mathys4)
+refquery[["pca"]] <- merge(dat[["pca"]], mathys4[["ref.pca"]])
+refquery <- RunUMAP(refquery, reduction = 'pca', dim = 1:20)
 DimPlot(refquery, group.by = 'id')
 DimPlot(refquery, group.by = 'predicted.subclass_label')
 DimPlot(refquery, group.by = 'broad.cell.type')
 
 
-table(mathys2$predicted.subclass_label)
-table(mathys2$batch)
-table(mathys2$batch, mathys2$Diagnosis)
-table(mathys2$batch, mathys2$sex)
+
+
 #### repeat with control subjects ONLY ###
 
 control <- subset(x = mathys2, subset = Diagnosis == "Cont")

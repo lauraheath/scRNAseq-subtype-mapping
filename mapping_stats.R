@@ -3,6 +3,7 @@ library(ggplot2)
 library(broom)
 library(pROC)
 library(caret)
+install.packages("e1071")
 
 mathys_meta3 <- mathys3@meta.data
 
@@ -90,19 +91,19 @@ heatmap(conf_mat, Rowv = NA, Colv = NA, col = cols)
 mathys_meta3$misclass <- ifelse(mathys_meta3$predicted.broadcelltypes!=mathys_meta3$broad.cell.type, 1, 0)
 table(mathys_meta3$misclass)
 
-misclass <- subset(mathys_meta2, mathys_meta2$misclass==1)
-table(mathys_meta2$Diagnosis, mathys_meta2$misclass)
+misclass <- subset(mathys_meta3, mathys_meta3$misclass==1)
+table(mathys_meta3$Diagnosis, mathys_meta3$misclass)
 table(misclass$predicted.subclass_label)
 table(misclass$predicted.broadcelltypes)
 table(misclass$broad.cell.type)
 mean(misclass$predicted.subclass_label.score)
-not_misclass <- subset(mathys_meta2, mathys_meta2$misclass==0)
+not_misclass <- subset(mathys_meta3, mathys_meta3$misclass==0)
 mean(not_misclass$predicted.subclass_label.score)
 
 #statistical testing to compare prediction scores
-cont_early <- subset(mathys_meta2, mathys_meta2$Diagnosis!="Late")
-cont_late <- subset(mathys_meta2, mathys_meta2$Diagnosis!="Early")
-early_late <- subset(mathys_meta2, mathys_meta2$Diagnosis!="Cont")
+cont_early <- subset(mathys_meta3, mathys_meta3$Diagnosis!="Late")
+cont_late <- subset(mathys_meta3, mathys_meta3$Diagnosis!="Early")
+early_late <- subset(mathys_meta3, mathys_meta3$Diagnosis!="Cont")
 
 Astro1 <- subset(cont_early, cont_early$predicted.subclass_label=='Astro')
 Endo1 <- subset(cont_early, cont_early$predicted.subclass_label=='Endo')
@@ -138,10 +139,10 @@ df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L23_IT1)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L23_IT1'
 stats <- rbind(stats, df)
-df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_ET1)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'L5_ET1'
-stats <- rbind(stats, df)
+#df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_ET1)
+#df <- as.data.frame(df$p.value)
+#df$celltype <- 'L5_ET1'
+#stats <- rbind(stats, df)
 df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_IT1)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5_IT1'
@@ -194,10 +195,10 @@ df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst1)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sst1'
 stats <- rbind(stats, df)
-df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst_Chodl1)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'Sst_Chodl1'
-stats <- rbind(stats, df)
+#df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst_Chodl1)
+#df <- as.data.frame(df$p.value)
+#df$celltype <- 'Sst_Chodl1'
+#stats <- rbind(stats, df)
 df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Vip1)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Vip1'
@@ -245,10 +246,10 @@ df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L23_IT2)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L23_IT2'
 stats2 <- rbind(stats2, df)
-df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_ET2)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'L5_ET2'
-stats2 <- rbind(stats2, df)
+# df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_ET2)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'L5_ET2'
+# stats2 <- rbind(stats2, df)
 df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_IT2)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5_IT2'
@@ -301,10 +302,10 @@ df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst2)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sst2'
 stats2 <- rbind(stats2, df)
-df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst_Chodl2)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'Sst_Chodl2'
-stats2 <- rbind(stats2, df)
+# df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst_Chodl2)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'Sst_Chodl2'
+# stats2 <- rbind(stats2, df)
 df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Vip2)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Vip2'
@@ -356,10 +357,10 @@ df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L23_IT3)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L23_IT3'
 stats3 <- rbind(stats3, df)
-df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_ET3)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'L5_ET3'
-stats3 <- rbind(stats3, df)
+# df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_ET3)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'L5_ET3'
+# stats3 <- rbind(stats3, df)
 df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=L5_IT3)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5_IT3'
@@ -412,10 +413,10 @@ df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst3)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sst3'
 stats3 <- rbind(stats3, df)
-df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst_Chodl3)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'Sst_Chodl3'
-stats3 <- rbind(stats3, df)
+# df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Sst_Chodl3)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'Sst_Chodl3'
+# stats3 <- rbind(stats3, df)
 df <- kruskal.test(predicted.subclass_label.score ~ Diagnosis, data=Vip3)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Vip3'
@@ -433,7 +434,7 @@ KWstats <- rbind(KWstats, stats3)
 names(KWstats)[names(KWstats) == "df$p.value"] <- "pvalue"
 head(KWstats)
 KWstats$fdr <- p.adjust(KWstats$pvalue, method="fdr")
-write.csv(KWstats, file="~/scAD_analysis/KWpredscores_stats.csv")
+write.csv(KWstats, file="~/celltype_mapping/KWpredscores_stats.csv")
 
 
 #chisquare test for proportions
@@ -474,10 +475,10 @@ df <- chisq.test(dat1$L23it01, dat1$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L2/3 IT'
 stats <- rbind(stats, df)
-df <- chisq.test(dat1$L5et01, dat1$diag01)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'L5 ET'
-stats <- rbind(stats, df)
+# df <- chisq.test(dat1$L5et01, dat1$diag01)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'L5 ET'
+# stats <- rbind(stats, df)
 df <- chisq.test(dat1$L5it01, dat1$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5 IT'
@@ -530,10 +531,10 @@ df <- chisq.test(dat1$sst01, dat1$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sst'
 stats <- rbind(stats, df)
-df <- chisq.test(dat1$sstchodl01, dat1$diag01)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'Sst Chodl'
-stats <- rbind(stats, df)
+# df <- chisq.test(dat1$sstchodl01, dat1$diag01)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'Sst Chodl'
+# stats <- rbind(stats, df)
 df <- chisq.test(dat1$vip01, dat1$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Vip'
@@ -546,216 +547,216 @@ stats <- rbind(stats, df)
 
 
 #control vs late
-dat1 <- cont_late
-dat1$diag01 <- ifelse(dat1$simpleDiagnosis=='Cont', 0, 1)
+dat2 <- cont_late
+dat2$diag01 <- ifelse(dat2$simpleDiagnosis=='Cont', 0, 1)
 
-dat1$astro01 <- ifelse(dat1$predicted.subclass_label=='Astro', 0, 1)
-dat1$endo01 <- ifelse(dat1$predicted.subclass_label=='Endo', 0, 1)
-dat1$L23it01 <- ifelse(dat1$predicted.subclass_label=='L2/3 IT', 0, 1)
-dat1$L5et01 <- ifelse(dat1$predicted.subclass_label=='L5 ET', 0, 1)
-dat1$L5it01 <- ifelse(dat1$predicted.subclass_label=='L5 IT', 0, 1)
-dat1$L56np01 <- ifelse(dat1$predicted.subclass_label=='L5/6 NP', 0, 1)
-dat1$L6ct01 <- ifelse(dat1$predicted.subclass_label=='L6 CT', 0, 1)
-dat1$L6it01 <- ifelse(dat1$predicted.subclass_label=='L6 IT', 0, 1)
-dat1$L6itcar301 <- ifelse(dat1$predicted.subclass_label=='L6 IT Car3', 0, 1)
-dat1$L6b01 <- ifelse(dat1$predicted.subclass_label=='L6b', 0, 1)
-dat1$lamp501 <- ifelse(dat1$predicted.subclass_label=='Lamp5', 0, 1)
-dat1$micro01 <- ifelse(dat1$predicted.subclass_label=='Micro-PVM', 0, 1)
-dat1$oligo01 <- ifelse(dat1$predicted.subclass_label=='Oligo', 0, 1)
-dat1$opc01 <- ifelse(dat1$predicted.subclass_label=='OPC', 0, 1)
-dat1$pvalb01 <- ifelse(dat1$predicted.subclass_label=='Pvalb', 0, 1)
-dat1$sncg01 <- ifelse(dat1$predicted.subclass_label=='Sncg', 0, 1)
-dat1$sst01 <- ifelse(dat1$predicted.subclass_label=='Sst', 0, 1)
-dat1$sstchodl01 <- ifelse(dat1$predicted.subclass_label=='Sst Chodl', 0, 1)
-dat1$vip01 <- ifelse(dat1$predicted.subclass_label=='Vip', 0, 1)
-dat1$vlmc01 <- ifelse(dat1$predicted.subclass_label=='VLMC', 0, 1)
+dat2$astro01 <- ifelse(dat2$predicted.subclass_label=='Astro', 0, 1)
+dat2$endo01 <- ifelse(dat2$predicted.subclass_label=='Endo', 0, 1)
+dat2$L23it01 <- ifelse(dat2$predicted.subclass_label=='L2/3 IT', 0, 1)
+dat2$L5et01 <- ifelse(dat2$predicted.subclass_label=='L5 ET', 0, 1)
+dat2$L5it01 <- ifelse(dat2$predicted.subclass_label=='L5 IT', 0, 1)
+dat2$L56np01 <- ifelse(dat2$predicted.subclass_label=='L5/6 NP', 0, 1)
+dat2$L6ct01 <- ifelse(dat2$predicted.subclass_label=='L6 CT', 0, 1)
+dat2$L6it01 <- ifelse(dat2$predicted.subclass_label=='L6 IT', 0, 1)
+dat2$L6itcar301 <- ifelse(dat2$predicted.subclass_label=='L6 IT Car3', 0, 1)
+dat2$L6b01 <- ifelse(dat2$predicted.subclass_label=='L6b', 0, 1)
+dat2$lamp501 <- ifelse(dat2$predicted.subclass_label=='Lamp5', 0, 1)
+dat2$micro01 <- ifelse(dat2$predicted.subclass_label=='Micro-PVM', 0, 1)
+dat2$oligo01 <- ifelse(dat2$predicted.subclass_label=='Oligo', 0, 1)
+dat2$opc01 <- ifelse(dat2$predicted.subclass_label=='OPC', 0, 1)
+dat2$pvalb01 <- ifelse(dat2$predicted.subclass_label=='Pvalb', 0, 1)
+dat2$sncg01 <- ifelse(dat2$predicted.subclass_label=='Sncg', 0, 1)
+dat2$sst01 <- ifelse(dat2$predicted.subclass_label=='Sst', 0, 1)
+dat2$sstchodl01 <- ifelse(dat2$predicted.subclass_label=='Sst Chodl', 0, 1)
+dat2$vip01 <- ifelse(dat2$predicted.subclass_label=='Vip', 0, 1)
+dat2$vlmc01 <- ifelse(dat2$predicted.subclass_label=='VLMC', 0, 1)
 
 stats2<-0
-df <- chisq.test(dat1$astro01, dat1$diag01)
+df <- chisq.test(dat2$astro01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Astro'
 stats2 <- df
-df <- chisq.test(dat1$endo01, dat1$diag01)
+df <- chisq.test(dat2$endo01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Endo'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L23it01, dat1$diag01)
+df <- chisq.test(dat2$L23it01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L2/3 IT'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L5et01, dat1$diag01)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'L5 ET'
-stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L5it01, dat1$diag01)
+# df <- chisq.test(dat2$L5et01, dat2$diag01)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'L5 ET'
+# stats2 <- rbind(stats2, df)
+df <- chisq.test(dat2$L5it01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5 IT'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L56np01, dat1$diag01)
+df <- chisq.test(dat2$L56np01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5/6 NP'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L6ct01, dat1$diag01)
+df <- chisq.test(dat2$L6ct01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6 CT'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L6it01, dat1$diag01)
+df <- chisq.test(dat2$L6it01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6 IT'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L6itcar301, dat1$diag01)
+df <- chisq.test(dat2$L6itcar301, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6 IT Car3'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$L6b01, dat1$diag01)
+df <- chisq.test(dat2$L6b01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6b'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$lamp501, dat1$diag01)
+df <- chisq.test(dat2$lamp501, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Lamp5'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$micro01, dat1$diag01)
+df <- chisq.test(dat2$micro01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Micro PVM'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$oligo01, dat1$diag01)
+df <- chisq.test(dat2$oligo01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Oligo'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$opc01, dat1$diag01)
+df <- chisq.test(dat2$opc01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'OPC'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$pvalb01, dat1$diag01)
+df <- chisq.test(dat2$pvalb01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Pvalb'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$sncg01, dat1$diag01)
+df <- chisq.test(dat2$sncg01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sncg'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$sst01, dat1$diag01)
+df <- chisq.test(dat2$sst01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sst'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$sstchodl01, dat1$diag01)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'Sst Chodl'
-stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$vip01, dat1$diag01)
+# df <- chisq.test(dat2$sstchodl01, dat2$diag01)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'Sst Chodl'
+# stats2 <- rbind(stats2, df)
+df <- chisq.test(dat2$vip01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Vip'
 stats2 <- rbind(stats2, df)
-df <- chisq.test(dat1$vlmc01, dat1$diag01)
+df <- chisq.test(dat2$vlmc01, dat2$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'VLMC'
 stats2 <- rbind(stats2, df)
 
 
 #early vs. late
-dat1 <- early_late
-dat1$diag01 <- ifelse(dat1$Diagnosis=='Early', 0, 1)
+dat3 <- early_late
+dat3$diag01 <- ifelse(dat3$Diagnosis=='Early', 0, 1)
 
-dat1$astro01 <- ifelse(dat1$predicted.subclass_label=='Astro', 0, 1)
-dat1$endo01 <- ifelse(dat1$predicted.subclass_label=='Endo', 0, 1)
-dat1$L23it01 <- ifelse(dat1$predicted.subclass_label=='L2/3 IT', 0, 1)
-dat1$L5et01 <- ifelse(dat1$predicted.subclass_label=='L5 ET', 0, 1)
-dat1$L5it01 <- ifelse(dat1$predicted.subclass_label=='L5 IT', 0, 1)
-dat1$L56np01 <- ifelse(dat1$predicted.subclass_label=='L5/6 NP', 0, 1)
-dat1$L6ct01 <- ifelse(dat1$predicted.subclass_label=='L6 CT', 0, 1)
-dat1$L6it01 <- ifelse(dat1$predicted.subclass_label=='L6 IT', 0, 1)
-dat1$L6itcar301 <- ifelse(dat1$predicted.subclass_label=='L6 IT Car3', 0, 1)
-dat1$L6b01 <- ifelse(dat1$predicted.subclass_label=='L6b', 0, 1)
-dat1$lamp501 <- ifelse(dat1$predicted.subclass_label=='Lamp5', 0, 1)
-dat1$micro01 <- ifelse(dat1$predicted.subclass_label=='Micro-PVM', 0, 1)
-dat1$oligo01 <- ifelse(dat1$predicted.subclass_label=='Oligo', 0, 1)
-dat1$opc01 <- ifelse(dat1$predicted.subclass_label=='OPC', 0, 1)
-dat1$pvalb01 <- ifelse(dat1$predicted.subclass_label=='Pvalb', 0, 1)
-dat1$sncg01 <- ifelse(dat1$predicted.subclass_label=='Sncg', 0, 1)
-dat1$sst01 <- ifelse(dat1$predicted.subclass_label=='Sst', 0, 1)
-dat1$sstchodl01 <- ifelse(dat1$predicted.subclass_label=='Sst Chodl', 0, 1)
-dat1$vip01 <- ifelse(dat1$predicted.subclass_label=='Vip', 0, 1)
-dat1$vlmc01 <- ifelse(dat1$predicted.subclass_label=='VLMC', 0, 1)
+dat3$astro01 <- ifelse(dat3$predicted.subclass_label=='Astro', 0, 1)
+dat3$endo01 <- ifelse(dat3$predicted.subclass_label=='Endo', 0, 1)
+dat3$L23it01 <- ifelse(dat3$predicted.subclass_label=='L2/3 IT', 0, 1)
+dat3$L5et01 <- ifelse(dat3$predicted.subclass_label=='L5 ET', 0, 1)
+dat3$L5it01 <- ifelse(dat3$predicted.subclass_label=='L5 IT', 0, 1)
+dat3$L56np01 <- ifelse(dat3$predicted.subclass_label=='L5/6 NP', 0, 1)
+dat3$L6ct01 <- ifelse(dat3$predicted.subclass_label=='L6 CT', 0, 1)
+dat3$L6it01 <- ifelse(dat3$predicted.subclass_label=='L6 IT', 0, 1)
+dat3$L6itcar301 <- ifelse(dat3$predicted.subclass_label=='L6 IT Car3', 0, 1)
+dat3$L6b01 <- ifelse(dat3$predicted.subclass_label=='L6b', 0, 1)
+dat3$lamp501 <- ifelse(dat3$predicted.subclass_label=='Lamp5', 0, 1)
+dat3$micro01 <- ifelse(dat3$predicted.subclass_label=='Micro-PVM', 0, 1)
+dat3$oligo01 <- ifelse(dat3$predicted.subclass_label=='Oligo', 0, 1)
+dat3$opc01 <- ifelse(dat3$predicted.subclass_label=='OPC', 0, 1)
+dat3$pvalb01 <- ifelse(dat3$predicted.subclass_label=='Pvalb', 0, 1)
+dat3$sncg01 <- ifelse(dat3$predicted.subclass_label=='Sncg', 0, 1)
+dat3$sst01 <- ifelse(dat3$predicted.subclass_label=='Sst', 0, 1)
+dat3$sstchodl01 <- ifelse(dat3$predicted.subclass_label=='Sst Chodl', 0, 1)
+dat3$vip01 <- ifelse(dat3$predicted.subclass_label=='Vip', 0, 1)
+dat3$vlmc01 <- ifelse(dat3$predicted.subclass_label=='VLMC', 0, 1)
 
 stats3<-0
-df <- chisq.test(dat1$astro01, dat1$diag01)
+df <- chisq.test(dat3$astro01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Astro'
 stats3 <- df
-df <- chisq.test(dat1$endo01, dat1$diag01)
+df <- chisq.test(dat3$endo01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Endo'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L23it01, dat1$diag01)
+df <- chisq.test(dat3$L23it01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L2/3 IT'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L5et01, dat1$diag01)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'L5 ET'
-stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L5it01, dat1$diag01)
+# df <- chisq.test(dat3$L5et01, dat3$diag01)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'L5 ET'
+# stats3 <- rbind(stats3, df)
+df <- chisq.test(dat3$L5it01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5 IT'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L56np01, dat1$diag01)
+df <- chisq.test(dat3$L56np01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L5/6 NP'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L6ct01, dat1$diag01)
+df <- chisq.test(dat3$L6ct01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6 CT'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L6it01, dat1$diag01)
+df <- chisq.test(dat3$L6it01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6 IT'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L6itcar301, dat1$diag01)
+df <- chisq.test(dat3$L6itcar301, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6 IT Car3'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$L6b01, dat1$diag01)
+df <- chisq.test(dat3$L6b01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'L6b'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$lamp501, dat1$diag01)
+df <- chisq.test(dat3$lamp501, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Lamp5'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$micro01, dat1$diag01)
+df <- chisq.test(dat3$micro01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Micro PVM'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$oligo01, dat1$diag01)
+df <- chisq.test(dat3$oligo01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Oligo'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$opc01, dat1$diag01)
+df <- chisq.test(dat3$opc01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'OPC'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$pvalb01, dat1$diag01)
+df <- chisq.test(dat3$pvalb01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Pvalb'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$sncg01, dat1$diag01)
+df <- chisq.test(dat3$sncg01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sncg'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$sst01, dat1$diag01)
+df <- chisq.test(dat3$sst01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Sst'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$sstchodl01, dat1$diag01)
-df <- as.data.frame(df$p.value)
-df$celltype <- 'Sst Chodl'
-stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$vip01, dat1$diag01)
+# df <- chisq.test(dat3$sstchodl01, dat3$diag01)
+# df <- as.data.frame(df$p.value)
+# df$celltype <- 'Sst Chodl'
+# stats3 <- rbind(stats3, df)
+df <- chisq.test(dat3$vip01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'Vip'
 stats3 <- rbind(stats3, df)
-df <- chisq.test(dat1$vlmc01, dat1$diag01)
+df <- chisq.test(dat3$vlmc01, dat3$diag01)
 df <- as.data.frame(df$p.value)
 df$celltype <- 'VLMC'
 stats3 <- rbind(stats3, df)
@@ -768,11 +769,15 @@ chi2stats <- rbind(chi2stats, stats3)
 names(chi2stats)[names(chi2stats) == "df$p.value"] <- "pvalue"
 head(chi2stats)
 chi2stats$fdr <- p.adjust(chi2stats$pvalue, method="fdr")
-write.csv(chi2stats, file="~/scAD_analysis/chi2proportion_stats.csv")
+write.csv(chi2stats, file="~/celltype_mapping/chi2proportion_stats.csv")
 
 
 
 
 #save the metadata file with predictions, scores, and misclass flag
-write.csv(mathys_meta2, file="~/scAD_analysis/allen_mapping/mathys_metadata_predictions.csv")
+write.csv(mathys_meta3, file="~/celltype_mapping/data/mathys_new_celltypes_seurat4.csv")
 
+#EXPORT CDS SYNAPSE FOLDER TO IDENTIFY INDIVIDUAL BRANCHES FOR PSEUDOTIME ANALYSIS
+#saveRDS(mathys_meta3, file="~/celltype_mapping/data/mathys_new_celltypes_seurat4.csv")
+file <- synapser::File(path='~/celltype_mapping/data/mathys_new_celltypes_seurat4.csv', parentId='syn25871777')
+file <- synapser::synStore(file)
