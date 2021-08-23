@@ -1,4 +1,4 @@
-synapser::synLogin(email="lheath", password="Q54!A!&9iCfl")
+
 #upload the gene expression matrix from allen institute's M1 reference data:
 
 p1 <- synapser::synGet('syn24182839')
@@ -9,8 +9,8 @@ M1ref$sample_name<-NULL
 M1ref <- as.matrix(M1ref)
 M1ref <- Matrix(M1ref, sparse=TRUE)
 M1ref <- t(M1ref)
-saveRDS(M1ref, file="~/celltype_mapping/data/M1ref_counts.rds")
-M1ref <- readRDS(file="~/celltype_mapping/data/M1ref_counts.rds")
+saveRDS(M1ref, file="~/scRNAseq-subtype-mapping/data/M1ref_counts.rds")
+M1ref <- readRDS(file="~/scRNAseq-subtype-mapping/data/M1ref_counts.rds")
 
 #read in metadata for cells:
 p2 <- synapser::synGet('syn24182843')
@@ -52,7 +52,6 @@ DimPlot(dat, group.by = "class_label", reduction="umap", label = TRUE, repel=TRU
 #mathys_meta <- pData(mathys)
 
 # non-normalized count matrix for mathys:
-#mathys <- readRDS(file="~/scRNAseq-subtype-mapping/data/mathys_notnormalized_counts.rds")
 p <- synapser::synGet('syn18686381')
 counts <- readMM(p$path)
 #get all mathys metadata
@@ -65,9 +64,9 @@ rownames(counts) <- readLines(p3$path)
 colnames(counts) <- mathys_meta[,1]
 
 #save the data structures:
-saveRDS(counts, file="~/scAD_analysis/data/mathys_notnormalized_counts.rds")
-# saveRDS(mathys_meta, file="~/scAD_analysis/data/mathys_metadata.rds")
-# saveRDS(dat, file="~/scAD_analysis/data/M1reference_seurat.RDS")
+saveRDS(counts, file="~/scRNAseq-subtype-mapping/data/mathys_scrannorm_counts.rds")
+#saveRDS(mathys_meta, file="~/scRNAseq-subtype-mapping/data/mathys_metadata.rds")
+#saveRDS(dat, file="~/scRNAseq-subtype-mapping/data/M1reference_seurat.RDS")
 
 
 mathys2 <- CreateSeuratObject(counts = counts, project = "Mapping", min.cells = 3, min.features = 200)

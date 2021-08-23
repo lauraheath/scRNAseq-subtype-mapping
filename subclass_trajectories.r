@@ -13,7 +13,7 @@ rownames(mathys_metadata) <- mathys_metadata$TAG
 p1 <- synapser::synGet('syn18686381')
 counts <- readMM(p1$path)
 #get original mathys metadata (with properly ordered rows to match counts matrix)
-#meta_temp <- readRDS(file="~/celltype-mapping/data/mathys_metadata.rds")
+#meta_temp <- readRDS(file="~/scRNAseq-subtype-mapping/data/mathys_metadata.rds")
 p2 <- synapser::synGet('syn24171852')
 meta_temp <- readRDS(p2$path)
 #get short gene names list and make them into rownames on counts file: filtered_gene_row_names.txt
@@ -54,8 +54,8 @@ counts2 = logcounts(sce)
 dim(counts2)
 
 #EXPORT SCRAN NORMALIZED COUNTS MATRIX TO SYNAPSE
-saveRDS(counts2, file="~/celltype_mapping/data/mathys_scrannorm_counts.rds")
-file <- synapser::File(path='~/celltype_mapping/data/mathys_scrannorm_counts.rds', parentId='syn25871777')
+saveRDS(counts2, file="~/scRNAseq-subtype-mapping/data/mathys_scrannorm_counts.rds")
+file <- synapser::File(path='~/scRNAseq-subtype-mapping/data/mathys_scrannorm_counts.rds', parentId='syn25871777')
 file <- synapser::synStore(file)
 
 #scran normalized count matrix:
@@ -73,7 +73,7 @@ cds <- new_cell_data_set(counts2,
                          gene_metadata = gene_short_name)
 
 
-#cds <- readRDS(file="~/scAD_analysis/Mathys_scrannorm_cds.rds")
+#cds <- readRDS(file="~/scRNAseq-subtype-mapping/Mathys_scrannorm_cds.rds")
 
 
 cds$educ = as.numeric(cds$educ)
