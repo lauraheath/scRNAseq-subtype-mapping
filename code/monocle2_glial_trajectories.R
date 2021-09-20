@@ -10,14 +10,19 @@ synapser::synLogin()
 #cds_mic <- readRDS(file="~/scRNAseq-subtype-mapping/Glial_clusters/cds_mic.RDS")
 #expression matrix:
 p <- synapser::synGet('syn26145835')
+#p <- synapser::synGet('syn25871862')
 counts <- readRDS(p$path)
 counts <- as.matrix(counts)
 
-p2 <- synapser::synGet('syn26145837')
-gene_short_name <- readRDS(p2$path)
+#p2 <- synapser::synGet('syn26145837')
+#gene_short_name <- readRDS(p2$path)
 
 p3 <- synapser::synGet('syn26145838')
 metadata <- readRDS(p3$path)
+#p3 <- synapser::synGet('syn25871851')
+metadata <- read.csv(p3$path)
+rownames(metadata) <- metadata$X
+metadata$X<-NULL
 
 #upload differentially expressed genes curated from mathys supplementary table 2
 p4 <- synapser::synGet('syn26136476')
@@ -35,19 +40,33 @@ for (gene in unique(c(as.vector(mathys_DEG$DEGgenes)))){
 }
 counts2 <- counts[genes2,]
 gene_short_name <- rownames(counts2)
-gene_short_name <- as.data.frame(genes)
-names(gene_short_name)[names(gene_short_name) == "genes"] <- "gene_short_name"
+gene_short_name <- as.data.frame(gene_short_name)
 rownames(gene_short_name)<-gene_short_name$gene_short_name
 
-#female patients only
-# female <- which(metadata$sex == 'female')
-# counts3 <- counts2[,female]
-# meta2 <- metadata[female,]
+#reorder metadata rows (same as 'TAG' column variable) to match columns of counts matrix:
+colnames_counts <- as.data.frame(colnames(counts2))
+names(colnames_counts)[names(colnames_counts) == "colnames(counts2)"] <- "columnnames"
+metadata <- metadata[order(match(metadata$TAG, colnames_counts$columnnames)),]
+
+#female patients, microglial cells only
+cells <- which(metadata$sex == 'female' & metadata$predicted.subclass_label=='Micro-PVM')
+counts3 <- counts2[,cells]
+meta2 <- metadata[cells,]
+
+#delete genes with zero expression
+counts3 <- as.data.frame(counts3)
+counts3 <- counts3[rowSums(counts3[])>0,]
+dim(counts3)
+counts3 <- as.matrix(counts3)
+gene_short_name <- rownames(counts3)
+gene_short_name <- as.data.frame(gene_short_name)
+rownames(gene_short_name)<-gene_short_name$gene_short_name
+
 
 #male patients only
-male <- which(metadata$sex == 'male')
-counts3 <- counts2[,male]
-meta2 <- metadata[male,]
+# male <- which(metadata$sex == 'male')
+# counts3 <- counts2[,male]
+# meta2 <- metadata[male,]
 
 #scale the counts in the matrix using ColNorm function
 counts3 <- ColNorm(counts3)
@@ -63,6 +82,12 @@ g <- g + ggplot2::scale_color_viridis_d()
 g <- g + ggplot2::labs(color="Diagnosis")
 g
 
+g<- plot_cell_trajectory(MonRun,color_by = "Subcluster",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+g <- g + ggplot2::scale_color_viridis_d()
+g <- g + ggplot2::labs(color="Diagnosis")
+g
+plot_cell_trajectory(MonRun,color_by = "Subcluster",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+
 g<- plot_cell_trajectory(MonRun,color_by = "State",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 g <- g + ggplot2::scale_color_viridis_d()
 g <- g + ggplot2::labs(color="diagnosis")
@@ -72,6 +97,20 @@ g<- plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_co
 g <- g + ggplot2::scale_color_viridis_d()
 g <- g + ggplot2::labs(color="diagnosis")
 g
+
+MonRun <- reduceDimension(MonRun, max_components = 2, reduction_method = 'tSNE', verbose=T)
+MonRun <- clusterCells(MonRun)
+plot_cell_clusters(MonRun, color="Diagnosis")
+
+
+table(MonRun$Diagnosis, MonRun$State)
+df <- list()
+df$State <- MonRun$State
+df$Diagnosis <- MonRun$Diagnosis
+df <- as.data.frame(df)
+table(df$State)
+proptable <- with(df, table(Diagnosis, State)) %>% prop.table(margin = 2)
+proptable
 
 
 #tiff(file='~/prot-lineage/figures/MALE_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)

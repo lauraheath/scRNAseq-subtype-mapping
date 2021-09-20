@@ -38,11 +38,8 @@ RunMonocleTobit <- function(Dat, Labels, max_components=2, meth = 'DDRTree',C_by
   
   
   return(HSMM)
-
   
 }
-
-
 
 ColNorm <- function(Dat){
   
