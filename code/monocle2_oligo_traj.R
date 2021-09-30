@@ -703,11 +703,9 @@ g <- g + ggplot2::labs(color="Diagnosis")
 g
 
 plot_cell_trajectory(MonRun,color_by = "Subcluster",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
-g<- plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 1)
-g <- g + ggplot2::scale_color_viridis_d()
-g <- g + ggplot2::labs(color="diagnosis")
-g
+table(MonRun$ros_ids, MonRun$batch)
 
 g<- plot_cell_trajectory(MonRun,color_by = "State",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 g <- g + ggplot2::scale_color_viridis_d()

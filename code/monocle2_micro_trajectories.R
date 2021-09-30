@@ -19,10 +19,6 @@ counts <- as.matrix(counts)
 
 p3 <- synapser::synGet('syn26145838')
 metadata <- readRDS(p3$path)
-#p3 <- synapser::synGet('syn25871851')
-metadata <- read.csv(p3$path)
-rownames(metadata) <- metadata$X
-metadata$X<-NULL
 
 #upload differentially expressed genes curated from mathys supplementary table 2
 p4 <- synapser::synGet('syn26136476')
@@ -93,14 +89,7 @@ g <- g + ggplot2::scale_color_viridis_d()
 g <- g + ggplot2::labs(color="diagnosis")
 g
 
-g<- plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 1)
-g <- g + ggplot2::scale_color_viridis_d()
-g <- g + ggplot2::labs(color="diagnosis")
-g
-
-MonRun <- reduceDimension(MonRun, max_components = 2, reduction_method = 'tSNE', verbose=T)
-MonRun <- clusterCells(MonRun)
-plot_cell_clusters(MonRun, color="Diagnosis")
+plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
 
 table(MonRun$Diagnosis, MonRun$State)
@@ -112,6 +101,11 @@ table(df$State)
 proptable <- with(df, table(Diagnosis, State)) %>% prop.table(margin = 2)
 proptable
 
+
+MonRun <- orderCells(MonRun, reverse=TRUE)
+plot_cell_trajectory(MonRun,color_by = "Pseudotime",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+
+plot_cell_trajectory(MonRun,color_by = "State",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
 #tiff(file='~/prot-lineage/figures/MALE_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
 MonRun$braaksc <- as.factor(MonRun$braaksc)
@@ -168,9 +162,10 @@ Fvariables$pseudotime_sc <- scale(Fvariables$Pseudotime, center=F)
 
 #run logistic regression comparing pseudotiem between cases and controls only
 #casecontrolF <- subset(Fvariables, Fvariables$simpleDiagnosis=='AD'|Fvariables$simpleDiagnosis=='Cont')
+
 Fvariables$diag3 <- ifelse(Fvariables$diag2=='AD', 1, 0)
 
-summary(glm(diag2 ~ pseudotime_sc,Fvariables,family='binomial'))
+summary(glm(diag3 ~ pseudotime_sc,Fvariables,family='binomial'))
 summary(glm(Diagnosis ~ pseudotime_sc,Fvariables,family='binomial'))
 #tiff(file='~/prot-lineage/figures/FEMALE_bargraph_diagnosis.tiff',height=170,width=200,units='mm',res=300)
 #tiff(file='~/prot-lineage/figures/MALE_bargraph_diagnosis.tiff',height=170,width=200,units='mm',res=300)
