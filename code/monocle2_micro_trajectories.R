@@ -1,24 +1,55 @@
 BiocManager::install("monocle")
+
 library(monocle)
 library(dplyr)
 library(ggplot2)
 synapser::synLogin()
 
-
-
-#microglia data
-#cds_mic <- readRDS(file="~/scRNAseq-subtype-mapping/Glial_clusters/cds_mic.RDS")
-#expression matrix:
-p <- synapser::synGet('syn26145835')
-#p <- synapser::synGet('syn25871862')
-counts <- readRDS(p$path)
+##### NOT batch-corrected glial cells #########
+#female glial cells
+counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_Seurat.RDS")
 counts <- as.matrix(counts)
+metadata <- counts@meta.data
+counts <- GetAssayData(object=counts, slot="counts")
 
-#p2 <- synapser::synGet('syn26145837')
-#gene_short_name <- readRDS(p2$path)
+#male glial cells
+counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_Seurat.RDS")
+counts <- as.matrix(counts)
+metadata <- counts@meta.data
+counts <- GetAssayData(object=counts, slot="counts")
 
-p3 <- synapser::synGet('syn26145838')
-metadata <- readRDS(p3$path)
+
+##############################################################################
+#use batch-corrected glial cell matrix from fastMNN as matrix:
+counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_batchcorrected.RDS")
+counts <- as.matrix(counts)
+metadata <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_metadata.RDS")
+
+
+counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_batchcorrected.RDS")
+counts <- as.matrix(counts)
+metadata <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_metadata.RDS")
+
+
+#reorder metadata rows (same as 'TAG' column variable) to match columns of counts matrix:
+colnames_counts <- as.data.frame(colnames(counts))
+names(colnames_counts)[names(colnames_counts) == "colnames(counts2)"] <- "columnnames"
+micrometa2 <- micrometa2[order(match(micrometa2$TAG, colnames_counts$columnnames)),]
+
+
+###########################################################################################
+
+#extract microglia cells only
+#cells <- which(metadata$reclassify == 'Micro-PVM' & metadata$ros_ids != 'ROS45')
+#cells <- which(metadata$reclassify == 'Micro-PVM')
+#cells <- which(metadata$reclassify == 'Astro')
+#cells <- which(metadata$reclassify == 'Oligo')
+cells <- which(metadata$reclassify == 'OPC')
+counts2 <- counts[,cells]
+micrometa2 <- metadata[cells,]
+dim(counts2)
+dim(micrometa2)
+
 
 #upload differentially expressed genes curated from mathys supplementary table 2
 p4 <- synapser::synGet('syn26136476')
@@ -26,73 +57,54 @@ mathys_DEG <- read.csv(p4$path, header=TRUE)
 mathys_DEG2 <- unique(mathys_DEG$DEGgenes)
 names(mathys_DEG2)[names(mathys_DEG2) == "mathys_DEG2"] <- "genes"
 
+
 genes2 <- c()
 for (gene in unique(c(as.vector(mathys_DEG$DEGgenes)))){
+#for (gene in unique(c(as.vector(wilcox_DEgenes$genes)))){
   
-  
-  if (gene %in% rownames(counts)){
-    genes2 <- c(genes2,which(rownames(counts)==gene))
+  if (gene %in% rownames(counts2)){
+    genes2 <- c(genes2,which(rownames(counts2)==gene))
   }
 }
-counts2 <- counts[genes2,]
+
+counts2 <- counts2[genes2,]
+dim(counts2)
+
 gene_short_name <- rownames(counts2)
+dim(counts2)
 gene_short_name <- as.data.frame(gene_short_name)
 rownames(gene_short_name)<-gene_short_name$gene_short_name
 
-#reorder metadata rows (same as 'TAG' column variable) to match columns of counts matrix:
-colnames_counts <- as.data.frame(colnames(counts2))
-names(colnames_counts)[names(colnames_counts) == "colnames(counts2)"] <- "columnnames"
-metadata <- metadata[order(match(metadata$TAG, colnames_counts$columnnames)),]
-
-#female patients, microglial cells only
-cells <- which(metadata$sex == 'female' & metadata$predicted.subclass_label=='Micro-PVM')
-counts3 <- counts2[,cells]
-meta2 <- metadata[cells,]
-
-#delete genes with zero expression
-counts3 <- as.data.frame(counts3)
-counts3 <- counts3[rowSums(counts3[])>0,]
-dim(counts3)
-counts3 <- as.matrix(counts3)
-gene_short_name <- rownames(counts3)
-gene_short_name <- as.data.frame(gene_short_name)
-rownames(gene_short_name)<-gene_short_name$gene_short_name
-
-
-#male patients only
-# male <- which(metadata$sex == 'male')
-# counts3 <- counts2[,male]
-# meta2 <- metadata[male,]
-
-#scale the counts in the matrix using ColNorm function
-counts3 <- ColNorm(counts3)
-temp <- counts3
-temp2 <- meta2
+#normalize counts for non-batch-corrected data only:
+counts2 <- ColNorm(counts2)
+temp <- counts2
+temp2 <- micrometa2
 
 rownames(temp) <- NULL
 colnames(temp) <- NULL
 
-MonRun <- RunMonocleTobit(temp, temp2, C_by = 'Pseudotime',gene_short_name = gene_short_name)
+####### For non-batch-corrected matrix, run RunMonocleTobit. For batch-corrected matrix, run RunMonocleTobit2 ###
+
+MonRun <- RunMonocleTobit2(temp, temp2, C_by = 'Pseudotime',gene_short_name = gene_short_name)
+
+MonRun <- RunMonocleTobit2(temp, temp2, C_by = 'Pseudotime',gene_short_name = gene_short_name)
+
 g<- plot_cell_trajectory(MonRun,color_by = "Diagnosis",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 g <- g + ggplot2::scale_color_viridis_d()
 g <- g + ggplot2::labs(color="Diagnosis")
 g
 
-g<- plot_cell_trajectory(MonRun,color_by = "Subcluster",show_branch_points=F,use_color_gradient = F,cell_size = 1)
-g <- g + ggplot2::scale_color_viridis_d()
-g <- g + ggplot2::labs(color="Diagnosis")
-g
-plot_cell_trajectory(MonRun,color_by = "Subcluster",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
 g<- plot_cell_trajectory(MonRun,color_by = "State",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 g <- g + ggplot2::scale_color_viridis_d()
 g <- g + ggplot2::labs(color="diagnosis")
 g
 
-plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 2)
+MonRun$batch <- as.factor(MonRun$batch)
+plot_cell_trajectory(MonRun,color_by = "batch",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
-
-table(MonRun$Diagnosis, MonRun$State)
+#determine which state has highest proportion of control cells compared to AD cells
 df <- list()
 df$State <- MonRun$State
 df$Diagnosis <- MonRun$Diagnosis
@@ -101,8 +113,9 @@ table(df$State)
 proptable <- with(df, table(Diagnosis, State)) %>% prop.table(margin = 2)
 proptable
 
-
-MonRun <- orderCells(MonRun, reverse=TRUE)
+#If necessary, reset root state to the state with the highest proportion of control cells
+#MonRun <- orderCells(MonRun, reverse=TRUE)
+MonRun <- orderCells(MonRun, root_state = 3)
 plot_cell_trajectory(MonRun,color_by = "Pseudotime",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
 plot_cell_trajectory(MonRun,color_by = "State",show_branch_points=F,use_color_gradient = F,cell_size = 1)
