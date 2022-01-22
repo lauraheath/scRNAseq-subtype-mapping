@@ -2,10 +2,11 @@ FROM rocker/rstudio:4.1.0
 
 RUN apt-get update -y\
 && apt-get install -y dpkg-dev zlib1g-dev libssl-dev libffi-dev zlib1g-dev libbz2-dev liblzma-dev build-essential libglpk40\
-&& apt-get install -y curl libcurl4-openssl-dev libxml2-dev libcairo2-dev libxt-dev r-cran-cairo\
+&& apt-get install -y curl libcurl4-openssl-dev libxml2-dev libcairo2-dev libxt-dev r-cran-cairo libgsl-dev\
 && apt-get install -y git\
 && R -e "install.packages('BiocManager')"\
 && R -e "BiocManager::install('biomaRt')"\
+&& R -e "BiocManager::install('monocle')"\
 && R -e "install.packages('caret')"\
 && R -e "install.packages('data.table')"\
 && R -e "install.packages('ggplot2')"\
@@ -18,7 +19,9 @@ RUN apt-get update -y\
 && R -e "install.packages('patchwork')"\
 && R -e "install.packages('RColorBrewer')"\
 && R -e "install.packages('Seurat')"\
-&& R -e "install.packages('tidyverse')"
+&& R -e "install.packages('tidyverse')"\
+&& R -e "devtools::install_github('cole-trapnell-lab/leidenbase')"\
+&& R -e "BiocManager::install(c('scran', 'scater', 'SingleCellExperiment'))"
 
 
 run mkdir -p /home/lheath/celltype_mapping \ 
