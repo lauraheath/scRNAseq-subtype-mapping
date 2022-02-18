@@ -1,47 +1,38 @@
-BiocManager::install("monocle")
+
 
 library(monocle)
 library(dplyr)
 library(ggplot2)
 synapser::synLogin()
 
-##### NOT batch-corrected glial cells #########
-#female glial cells
-counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_Seurat.RDS")
-counts <- as.matrix(counts)
-metadata <- counts@meta.data
-counts <- GetAssayData(object=counts, slot="counts")
-
-#male glial cells
-counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_Seurat.RDS")
-counts <- as.matrix(counts)
-metadata <- counts@meta.data
-counts <- GetAssayData(object=counts, slot="counts")
-
-
 ##############################################################################
-#use batch-corrected glial cell matrix from fastMNN as matrix:
-counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_batchcorrected.RDS")
+#use sample-corrected glial cell matrix from fastMNN as matrix:
+#counts <- readRDS(file="~/scRNAseq-subtype-mapping/data_objects/glialcellsF_batchcorrected.RDS")
+counts <- readRDS(file="~/scRNAseq-subtype-mapping/data_objects/glialcellsF_samplecorrected.RDS")
 counts <- as.matrix(counts)
-metadata <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_metadata.RDS")
+metadata <- readRDS(file="~/scRNAseq-subtype-mapping/data_objects/glialcellsF_metadata.RDS")
+dim(counts)
+dim(metadata)
 
-
-counts <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_batchcorrected.RDS")
+#counts <- readRDS(file="~/scRNAseq-subtype-mapping/data_objects/glialcellsM_batchcorrected.RDS")
+counts <- readRDS(file="~/scRNAseq-subtype-mapping/data_objects/glialcellsM_samplecorrected.RDS")
 counts <- as.matrix(counts)
-metadata <- readRDS(file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_metadata.RDS")
+metadata <- readRDS(file="~/scRNAseq-subtype-mapping/data_objects/glialcellsM_metadata.RDS")
+dim(counts)
+dim(metadata)
 
 
 #reorder metadata rows (same as 'TAG' column variable) to match columns of counts matrix:
 colnames_counts <- as.data.frame(colnames(counts))
-names(colnames_counts)[names(colnames_counts) == "colnames(counts2)"] <- "columnnames"
-micrometa2 <- micrometa2[order(match(micrometa2$TAG, colnames_counts$columnnames)),]
+names(colnames_counts)[names(colnames_counts) == "colnames(counts)"] <- "columnnames"
+metadata2 <- metadata[order(match(metadata$TAG, colnames_counts$columnnames)),]
 
 
 ###########################################################################################
 
-#extract microglia cells only
+#extract celltype of interest
 #cells <- which(metadata$reclassify == 'Micro-PVM' & metadata$ros_ids != 'ROS45')
-#cells <- which(metadata$reclassify == 'Micro-PVM')
+#cells <- which(metadata2$reclassify == 'Micro-PVM')
 #cells <- which(metadata$reclassify == 'Astro')
 #cells <- which(metadata$reclassify == 'Oligo')
 cells <- which(metadata$reclassify == 'OPC')
@@ -75,8 +66,6 @@ dim(counts2)
 gene_short_name <- as.data.frame(gene_short_name)
 rownames(gene_short_name)<-gene_short_name$gene_short_name
 
-#normalize counts for non-batch-corrected data only:
-counts2 <- ColNorm(counts2)
 temp <- counts2
 temp2 <- micrometa2
 
@@ -85,22 +74,38 @@ colnames(temp) <- NULL
 
 ####### For non-batch-corrected matrix, run RunMonocleTobit. For batch-corrected matrix, run RunMonocleTobit2 ###
 
-MonRun <- RunMonocleTobit2(temp, temp2, C_by = 'Pseudotime',gene_short_name = gene_short_name)
+#MonRun <- RunMonocleTobit2(temp, temp2, C_by = 'Pseudotime',gene_short_name = gene_short_name)
 
 MonRun <- RunMonocleTobit2(temp, temp2, C_by = 'Pseudotime',gene_short_name = gene_short_name)
 
-g<- plot_cell_trajectory(MonRun,color_by = "Diagnosis",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/MicroF_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/MicroM_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/AstroF_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/AstroM_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoF_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoM_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OpcF_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+tiff(file='~/scRNAseq-subtype-mapping/figures/OpcM_samplecorrected_tree.tiff',height=85,width=100,units='mm',res=300)
+g<- plot_cell_trajectory(MonRun,color_by = "Diagnosis",show_branch_points=F,use_color_gradient = F,cell_size = 0.5)
 g <- g + ggplot2::scale_color_viridis_d()
 g <- g + ggplot2::labs(color="Diagnosis")
 g
+dev.off()
 
 
 g<- plot_cell_trajectory(MonRun,color_by = "State",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 g <- g + ggplot2::scale_color_viridis_d()
-g <- g + ggplot2::labs(color="diagnosis")
+g <- g + ggplot2::labs(color="State")
 g
 
-plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 2)
+g<- plot_cell_trajectory(MonRun,color_by = "Subcluster",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+g <- g + ggplot2::scale_color_viridis_d()
+g <- g + ggplot2::labs(color="subcluster")
+g
+plot_cell_trajectory(MonRun,color_by = "Subcluster",show_branch_points=F,use_color_gradient = F,cell_size = 1)
+
+
+plot_cell_trajectory(MonRun,color_by = "ros_ids",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 MonRun$batch <- as.factor(MonRun$batch)
 plot_cell_trajectory(MonRun,color_by = "batch",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
@@ -113,14 +118,136 @@ table(df$State)
 proptable <- with(df, table(Diagnosis, State)) %>% prop.table(margin = 2)
 proptable
 
+table(MonRun$State)
+
 #If necessary, reset root state to the state with the highest proportion of control cells
-#MonRun <- orderCells(MonRun, reverse=TRUE)
+
+#microglia females sample-corrected: root at state 6
+MonRun <- orderCells(MonRun, root_state = 6)
+#microglia males sample-corrected: root at state 3
 MonRun <- orderCells(MonRun, root_state = 3)
+#Astrocyes females: reverse 
+MonRun <- orderCells(MonRun, reverse=TRUE)
+#Astrocyes males: root at state 6
+MonRun <- orderCells(MonRun, root_state = 6)
+#Oligodendrocytes females: root at state 7
+MonRun <- orderCells(MonRun, root_state = 7)
+#Oligodendrocytes males: reverse
+MonRun <- orderCells(MonRun, reverse=TRUE)
+#OPCs females: root at state 3
+MonRun <- orderCells(MonRun, root_state = 3)
+#OPCs males: root at state 4
+MonRun <- orderCells(MonRun, root_state = 4)
+
 plot_cell_trajectory(MonRun,color_by = "Pseudotime",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
 plot_cell_trajectory(MonRun,color_by = "State",show_branch_points=F,use_color_gradient = F,cell_size = 1)
 
-#tiff(file='~/prot-lineage/figures/MALE_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+
+#relabel states: mic female
+
+#MicroF
+MonRun$State2 <- MonRun$State
+MonRun$State2[MonRun$State == 6] <- 1
+MonRun$State2[MonRun$State == 4] <- 2
+MonRun$State2[MonRun$State == 3] <- 2
+MonRun$State2[MonRun$State == 2] <- 2
+MonRun$State2[MonRun$State == 7] <- 3
+MonRun$State2[MonRun$State == 1] <- 4
+MonRun$State2[MonRun$State == 5] <- 5
+
+
+#MicroM
+MonRun$State2 <- MonRun$State
+MonRun$State2[MonRun$State == 3] <- 1
+MonRun$State2[MonRun$State == 4] <- 2
+MonRun$State2[MonRun$State == 2] <- 3
+MonRun$State2[MonRun$State == 5] <- 4
+MonRun$State2[MonRun$State == 1] <- 5
+
+
+#AstroF
+MonRun$State2 <- MonRun$State
+#States are in order as is after reversal
+
+#AstroM
+MonRun$State2 <- MonRun$State
+MonRun$State2[MonRun$State == 6] <- 1
+MonRun$State2[MonRun$State == 7] <- 2
+MonRun$State2[MonRun$State == 5] <- 3
+MonRun$State2[MonRun$State == 4] <- 4
+MonRun$State2[MonRun$State == 3] <- 3
+MonRun$State2[MonRun$State == 2] <- 5
+MonRun$State2[MonRun$State == 1] <- 5
+
+#OligoF
+MonRun$State2 <- MonRun$State
+MonRun$State2[MonRun$State == 7] <- 1
+MonRun$State2[MonRun$State == 4] <- 2
+MonRun$State2[MonRun$State == 6] <- 2
+MonRun$State2[MonRun$State == 5] <- 3
+MonRun$State2[MonRun$State == 3] <- 4
+MonRun$State2[MonRun$State == 2] <- 4
+MonRun$State2[MonRun$State == 1] <- 5
+
+table(MonRun$State)
+#OligoM
+MonRun$State2 <- MonRun$State
+MonRun$State2[MonRun$State == 1] <- 1
+MonRun$State2[MonRun$State == 2] <- 2
+MonRun$State2[MonRun$State == 10] <- 2
+MonRun$State2[MonRun$State == 11] <- 2
+MonRun$State2[MonRun$State == 3] <- 2
+MonRun$State2[MonRun$State == 4] <- 3
+MonRun$State2[MonRun$State == 5] <- 4
+MonRun$State2[MonRun$State == 6] <- 4
+MonRun$State2[MonRun$State == 9] <- 5
+MonRun$State2[MonRun$State == 7] <- 6
+MonRun$State2[MonRun$State == 8] <- 7
+
+#OpcF
+MonRun$State2 <- MonRun$State
+MonRun$State2[MonRun$State == 3] <- 1
+MonRun$State2[MonRun$State == 1] <- 2
+MonRun$State2[MonRun$State == 2] <- 3
+
+#OpcM
+MonRun$State2 <- MonRun$State
+MonRun$State2[MonRun$State == 4] <- 1
+MonRun$State2[MonRun$State == 7] <- 2
+MonRun$State2[MonRun$State == 6] <- 3
+MonRun$State2[MonRun$State == 5] <- 4
+MonRun$State2[MonRun$State == 3] <- 4
+MonRun$State2[MonRun$State == 2] <- 5
+MonRun$State2[MonRun$State == 1] <- 6
+ 
+
+MonRun$State2 <- as.character(MonRun$State2)
+MonRun$State2 <- as.factor(MonRun$State2)
+table(MonRun$State2)
+
+#tiff(file='~/scRNAseq-subtype-mapping/figures/MicroF_state_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/MicroM_state_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/AstroF_state_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/AstroM_state_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoF_state_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoM_state_tree.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OpcF_state_tree.tiff',height=85,width=100,units='mm',res=300)
+tiff(file='~/scRNAseq-subtype-mapping/figures/OpcM_state_tree.tiff',height=85,width=100,units='mm',res=300)
+g<- plot_cell_trajectory(MonRun,color_by = "State2",show_branch_points=F,use_color_gradient = F,cell_size = 0.5)
+g <- g + ggplot2::scale_color_viridis_d()
+g <- g + ggplot2::labs(color="State")
+g
+dev.off()
+
+#tiff(file='~/scRNAseq-subtype-mapping/figures/microF_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/microM_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/astroF_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/astroM_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoF_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoM_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OpcF_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
+tiff(file='~/scRNAseq-subtype-mapping/figures/OpcM_bargraph_braak.tiff',height=85,width=100,units='mm',res=300)
 MonRun$braaksc <- as.factor(MonRun$braaksc)
 g <- ggplot2::ggplot(MonRun@phenoData@data, aes(x=braaksc, y=scale(Pseudotime,center=F),fill=braaksc)) 
 g <- g + ggplot2::geom_boxplot()
@@ -130,8 +257,16 @@ g <- g + ggplot2::theme(axis.text=element_text(size=15), axis.title=element_text
 g <- g + ggplot2::scale_fill_viridis_d()
 g <- g + ggplot2::labs(fill="Braak\nScore",y="Pseudotime",x="Braak Score")
 g
-#dev.off()
+dev.off()
 
+#tiff(file='~/scRNAseq-subtype-mapping/figures/microF_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/microM_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/astroF_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/astroM_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoF_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoM_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OpcF_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
+tiff(file='~/scRNAseq-subtype-mapping/figures/OpcM_bargraph_cogdx.tiff',height=85,width=100,units='mm',res=300)
 MonRun$cogdx <- as.factor(MonRun$cogdx)
 g <- ggplot2::ggplot(MonRun@phenoData@data, aes(x=cogdx, y=scale(Pseudotime,center=F),fill=cogdx)) 
 g <- g + ggplot2::geom_boxplot()
@@ -139,38 +274,68 @@ g <- g + ggplot2::stat_summary(fun.y=mean, geom="point", shape=23, size=2)
 g <- g + ggplot2::theme(axis.text=element_text(size=15), axis.title=element_text(size=15,face="bold"),
                         legend.text=element_text(size=15)) 
 g <- g + ggplot2::scale_fill_viridis_d()
-g <- g + ggplot2::labs(fill="Braak\nScore",y="Pseudotime",x="cogdx")
+g <- g + ggplot2::labs(fill="COGDX",y="Pseudotime",x="cogdx")
 g
+dev.off()
 
+#tiff(file='~/scRNAseq-subtype-mapping/figures/microF_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/microM_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/astroF_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/astroM_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoF_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OligoM_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+#tiff(file='~/scRNAseq-subtype-mapping/figures/OpcF_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+tiff(file='~/scRNAseq-subtype-mapping/figures/OpcM_bargraph_cerad.tiff',height=85,width=100,units='mm',res=300)
+MonRun$ceradsc <- as.factor(MonRun$ceradsc)
+g <- ggplot2::ggplot(MonRun@phenoData@data, aes(x=ceradsc, y=scale(Pseudotime,center=F),fill=ceradsc)) 
+g <- g + ggplot2::geom_boxplot()
+g <- g + ggplot2::stat_summary(fun.y=mean, geom="point", shape=23, size=2)
+g <- g + ggplot2::theme(axis.text=element_text(size=15), axis.title=element_text(size=15,face="bold"),
+                        legend.text=element_text(size=15)) 
+g <- g + ggplot2::scale_fill_viridis_d()
+g <- g + ggplot2::labs(fill="CERAD\nScore",y="Pseudotime",x="ceradsc")
+g
+dev.off()
+
+head(pData(MonRun))
 x <- list()
+x$cellID <- MonRun$TAG
+x$projid <- MonRun$projid
 x$ros_ids <- MonRun$ros_ids
-x$State <- MonRun$State
+x$State <- MonRun$State2
 x$Pseudotime <- MonRun$Pseudotime
 x$Diagnosis <- MonRun$Diagnosis
 x$diag2 <- MonRun$simpleDiagnosis
 x$braaksc <- MonRun$braaksc
 x$ceradsc <- MonRun$ceradsc
 x$cogdx <- MonRun$cogdx
+x$amyloid <- MonRun$amyloid
+x$plaq_n <- MonRun$plaq_n
+x$nft <- MonRun$nft
+x$tangles <- MonRun$tangles
+x$gpath <- MonRun$gpath
+x$amyloid.group <- MonRun$amyloid.group
 x$apoe <- MonRun$apoe_genotype
 x$educ   <- MonRun$educ
 x$pmi <- MonRun$pmi
-#x$batch <- MonRun$batch
-#x$mmse <- MonRun$cts_mmse30_lv
-#x$age_death <- MonRun$age_death
-#x$rna_seq_sample <- MonRun$rnaseq
+x$reclassify <- MonRun$reclassify
 
 #females: rename and create a scaled pseudotime variable
 Fvariables <- as.data.frame(x)
 Fvariables$pseudotime_sc <- scale(Fvariables$Pseudotime, center=F)
 
 #save variables file for later
-#write.csv(prot_pstime_covars_F, file="~/prot-lineage/results/prot_pstime_covars_F.csv", row.names=FALSE)
+#write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/MicroF_samplecorrected_pstimeStates.csv", row.names=FALSE)
+#write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/MicroM_samplecorrected_pstimeStates.csv", row.names=FALSE)
 
-#for males:
-#prot_pstime_covars_M <- as.data.frame(x)
-#prot_pstime_covars_M$pseudotime_sc <- scale(prot_pstime_covars_M$Pseudotime, center=F)
-#write.csv(prot_pstime_covars_M, file="~/prot-lineage/results/prot_pstime_covars_M.csv", row.names=FALSE)
+#write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/AstroF_samplecorrected_pstimeStates.csv", row.names=FALSE)
+#write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/AstroM_samplecorrected_pstimeStates.csv", row.names=FALSE)
 
+#write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/OligoF_samplecorrected_pstimeStates.csv", row.names=FALSE)
+#write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/OligoM_samplecorrected_pstimeStates.csv", row.names=FALSE)
+
+#write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/OpcF_samplecorrected_pstimeStates.csv", row.names=FALSE)
+write.csv(Fvariables, file="~/scRNAseq-subtype-mapping/data_objects/OpcM_samplecorrected_pstimeStates.csv", row.names=FALSE)
 
 
 #run logistic regression comparing pseudotiem between cases and controls only

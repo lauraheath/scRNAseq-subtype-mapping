@@ -1,21 +1,22 @@
 
 #upload the gene expression matrix from allen institute's M1 reference data:
 
-p1 <- synapser::synGet('syn24182839')
-M1ref <- read.csv(p1$path)
+p1 <- synapser::synGet('syn25871859')
+M1ref <- readRDS(p1$path)
 #turn the csv file into a sparse matrix and transpose, so cells are columns and genes are rows
-rownames(M1ref) <- M1ref$sample_name
-M1ref$sample_name<-NULL
-M1ref <- as.matrix(M1ref)
-M1ref <- Matrix(M1ref, sparse=TRUE)
-M1ref <- t(M1ref)
+#rownames(M1ref) <- M1ref$sample_name
+#M1ref$sample_name<-NULL
+#M1ref <- as.matrix(M1ref)
+#M1ref <- Matrix(M1ref, sparse=TRUE)
+#M1ref <- t(M1ref)
 saveRDS(M1ref, file="~/scRNAseq-subtype-mapping/data/M1ref_counts.rds")
 M1ref <- readRDS(file="~/scRNAseq-subtype-mapping/data/M1ref_counts.rds")
 
 #read in metadata for cells:
-p2 <- synapser::synGet('syn24182843')
+p2 <- synapser::synGet('syn25871900')
 metadata <- read.csv(p2$path)
-rownames(metadata) <- colnames(M1ref)
+rownames(metadata) <- metadata$sample_name
+metadata$X<-NULL
 
 #counts <- M1ref@assays$RNA@counts
 
@@ -54,17 +55,24 @@ DimPlot(dat, group.by = "class_label", reduction="umap", label = TRUE, repel=TRU
 # non-normalized count matrix for mathys:
 p <- synapser::synGet('syn18686381')
 counts <- readMM(p$path)
+counts <- as(counts, "dgCMatrix")
 #get all mathys metadata
 #mathys_meta <- readRDS(file="~/scRNAseq-subtype-mapping/data/mathys_metadata.rds")
-p2 <- synapser::synGet('syn24171852')
-mathys_meta <- readRDS(p2$path)
+#p2 <- synapser::synGet('syn24171852')
+p2 <- synapser::synGet('syn26530396')
+mathys_meta <- read.csv(p2$path)
 #get short gene names list and make them into rownames on counts file: filtered_gene_row_names.txt
 p3 <- synapser::synGet('syn18686382')
+
+colnames_counts <- as.data.frame(colnames(counts))
+names(colnames_counts)[names(colnames_counts) == "colnames(counts)"] <- "columnnames"
+mathys_meta <- mathys_meta[order(match(mathys_meta$TAG, colnames_counts$columnnames)),]
+
 rownames(counts) <- readLines(p3$path)
 colnames(counts) <- mathys_meta[,1]
 
 #save the data structures:
-saveRDS(counts, file="~/scRNAseq-subtype-mapping/data/mathys_scrannorm_counts.rds")
+#saveRDS(counts, file="~/scRNAseq-subtype-mapping/data/mathys_scrannorm_counts.rds")
 #saveRDS(mathys_meta, file="~/scRNAseq-subtype-mapping/data/mathys_metadata.rds")
 #saveRDS(dat, file="~/scRNAseq-subtype-mapping/data/M1reference_seurat.RDS")
 
@@ -113,7 +121,7 @@ head(x=mathys2.batches[[1]])
 
 p1 <- DimPlot(mathys2.batches[[1]], reduction = 'ref.umap', group.by = 'predicted.subclass_label', label.size = 3)
 p2 <- DimPlot(mathys2.batches[[2]], reduction = 'ref.umap', group.by = 'predicted.subclass_label', label.size = 3)
-p1 + p2 + plot_layout(guides = "collect")
+p1 + p2 + patchwork::plot_layout(guides = "collect")
 mathys3 <- merge(mathys2.batches[[1]], mathys2.batches[2:length(mathys2.batches)], merge.dr = "ref.umap")
 DimPlot(mathys3, reduction = "ref.umap", group.by =  "predicted.subclass_label", label = FALSE, repel = TRUE, label.size = 1)
 head(x=mathys3[[]])
@@ -123,141 +131,17 @@ hist(mathys3$predicted.subclass_label.score)
 
 
 
-#######################################
-mathys4 <- merge(mathys2.batches[[1]], mathys2.batches[2:length(mathys2.batches)], merge.dr = "ref.pca")
-dat$id <- 'reference'
-mathys4$id <- 'query'
-refquery <- merge(dat, mathys4)
-refquery[["pca"]] <- merge(dat[["pca"]], mathys4[["ref.pca"]])
-refquery <- RunUMAP(refquery, reduction = 'pca', dim = 1:20)
-DimPlot(refquery, group.by = 'id')
-DimPlot(refquery, group.by = 'predicted.subclass_label')
-DimPlot(refquery, group.by = 'broad.cell.type')
+#pull the metadata with the new predictions from the Seurat object:
+metadata_update <- mathys3@meta.data
 
 
+##need to save in synapse
+write.csv(metadata_update, file='~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/mathys_new_celltypes_seurat4.csv', row.names=FALSE)
+file <- synapser::File(path='~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/mathys_new_celltypes_seurat4.csv', parentId='syn25871777')
+file <- synapser::synStore(file)
 
 
-#### repeat with control subjects ONLY ###
-
-control <- subset(x = mathys2, subset = Diagnosis == "Cont")
-head(x=control[[]])
-control <- SCTransform(control, vars.to.regress = "ros_ids", do.scale = TRUE, verbose = TRUE)
-head(x=control[[]])
-
-
-anchors <- FindTransferAnchors(
-  reference = dat,
-  query = control,
-  normalization.method = "SCT",
-  reference.reduction = "pca",
-  dims = 1:20
-)
-
-control <- MapQuery(
-  anchorset = anchors,
-  query =control,
-  reference = dat,
-  refdata = list(
-    class_label = "class_label",
-    subclass_label = "subclass_label",
-    cluster_label = "cluster_label"
-  ),
-  reference.reduction = "pca", 
-  reduction.model = "umap"
-)
-head(x=control[[]])
-
-DimPlot(control, reduction = "ref.umap", group.by = "predicted.class_label", label = TRUE, label.size = 3, repel = TRUE)
-DimPlot(control, reduction = "ref.umap", group.by = "predicted.subclass_label", label = FALSE, label.size = 1, repel = TRUE)
-hist(control$predicted.subclass_label.score)
-summary(control$predicted.subclass_label.score)
-
-#now with AD subjects only
-ad <- subset(x = mathys2, subset = Diagnosis != "Cont")
-head(x=ad[[]])
-table(ad$Diagnosis)
-ad <- SCTransform(ad, vars.to.regress = "ros_ids", do.scale = TRUE, verbose = TRUE)
-head(x=ad[[]])
-
-
-anchors <- FindTransferAnchors(
-  reference = dat,
-  query = ad,
-  normalization.method = "SCT",
-  reference.reduction = "pca",
-  dims = 1:20
-)
-
-ad <- MapQuery(
-  anchorset = anchors,
-  query =ad,
-  reference = dat,
-  refdata = list(
-    class_label = "class_label",
-    subclass_label = "subclass_label",
-    cluster_label = "cluster_label"
-  ),
-  reference.reduction = "pca", 
-  reduction.model = "umap"
-)
-head(x=ad[[]])
-
-DimPlot(ad, reduction = "ref.umap", group.by = "predicted.class_label", label = TRUE, label.size = 3, repel = TRUE)
-DimPlot(ad, reduction = "ref.umap", group.by = "predicted.subclass_label", label = FALSE, label.size = 1, repel = TRUE)
-hist(ad$predicted.subclass_label.score)
-summary(ad$predicted.subclass_label.score)
-hist(control$predicted.subclass_label.score)
-
-
-
-#### read in scran-normalized mathys data and attach predicted celltypes to metadata
-cds <- readRDS(file="~/scAD_analysis/Mathys_scrannorm_cds.rds")
-#get the metadata:
-mathys_meta2 <- mathys2@meta.data
-
-cds$pred.class_label <- mathys_meta2$predicted.class_label
-cds$pred.class_label.score <- mathys_meta2$predicted.class_label.score
-cds$pred.subclass_label <- mathys_meta2$predicted.subclass_label
-cds$pred.subclass_label.score <- mathys_meta2$predicted.subclass_label.score
-cds$pred.cluster_label <- mathys_meta2$predicted.cluster_label
-cds$pred.cluster_label.score <- mathys_meta2$predicted.cluster_label.score
-head(colData(cds))
-#want to calculate subclass percentages in control and AD
-df1 <- mathys_meta2 %>% group_by(Diagnosis, predicted.subclass_label) %>%
-  summarise(Nb = n()) %>%
-  mutate(C = sum(Nb)) %>%
-  mutate(percent = Nb/C*100)
-
-ggplot(df1, aes(fill = Diagnosis, y = percent, x = predicted.subclass_label))+
-  geom_bar(position = "dodge", stat = "identity")+ theme_classic()
-
-df2 <- mathys_meta2 %>% group_by(simpleDiagnosis, predicted.subclass_label) %>%
-  summarise(Nb = n()) %>%
-  mutate(C = sum(Nb)) %>%
-  mutate(percent = Nb/C*100)
-
-ggplot(df2, aes(fill = simpleDiagnosis, y = percent, x = predicted.subclass_label))+
-  geom_bar(position = "dodge", stat = "identity")+ theme_classic()
-
-
-
-cont_meta <- control@meta.data
-ad_meta <- ad@meta.data
-df3 <- rbind(cont_meta, ad_meta)
-df3 <- df3 %>% group_by(Diagnosis, predicted.subclass_label) %>%
-  summarise(Nb = n()) %>%
-  mutate(C = sum(Nb)) %>%
-  mutate(percent = Nb/C*100)
-
-ggplot(df3, aes(fill = Diagnosis, y = percent, x = predicted.subclass_label))+
-  geom_bar(position = "dodge", stat = "identity")+ theme_classic()
-
-
-ggplot(mathys_meta2, aes(y = predicted.subclass_label.score, x = predicted.subclass_label, fill = Diagnosis))+
-  geom_boxplot()+ theme_classic()+geom_point(position=position_jitter())
-
-
-
-co <- subset(mathys_meta2, mathys_meta2$Diagnosis=='Cont')
-
+saveRDS(mathys3, file='~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/mathys_mapped_seuratObj.rds')
+file <- synapser::File(path='~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/mathys_mapped_seuratObj.rds', parentId='syn25871777')
+file <- synapser::synStore(file)
 

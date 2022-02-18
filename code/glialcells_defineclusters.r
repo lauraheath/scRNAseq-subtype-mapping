@@ -1,4 +1,4 @@
-install.packages("remotes")
+#install.packages("remotes")
 install.packages("R.utils")
 remotes::install_github("satijalab/seurat-wrappers")
 #install.packages("matrixStats")
@@ -17,6 +17,7 @@ p1 <- synapser::synGet('syn25871862')
 counts <- readRDS(p1$path)
 counts <- as(counts, "dgCMatrix")
 
+#upload metadata with allen nomenclature mapping attached:
 p <- synapser::synGet('syn25871851')
 mathys_metadata <- read.csv(p$path)
 rownames(mathys_metadata) <- mathys_metadata$TAG
@@ -43,24 +44,24 @@ dim(mathysM)
 
 
 mathysF <- SCTransform(mathysF, do.scale = TRUE, verbose = TRUE)
-#need to add the metadata to the seurat object:
 mathysM <- SCTransform(mathysM, do.scale = TRUE, verbose = TRUE)
-
 
 mathysF <- RunPCA(mathysF, npcs = 30)
 mathysF <- RunUMAP(mathysF, dims = 1:30)
 mathysM <- RunPCA(mathysM, npcs = 30)
 mathysM <- RunUMAP(mathysM, dims = 1:30)
 
-mathysF <- FindNeighbors(mathysF, reduction = "pca", dims = 1:30)
-mathysF <- FindClusters(mathysF, verbose = TRUE)
+
+#for cleaner clusters, decrease resolution in FindNeighbors
+mathysF <- FindNeighbors(mathysF, reduction = "umap", dims = 1:2)
+mathysF <- FindClusters(mathysF, resolution = 0.1, verbose = TRUE)
 DimPlot(mathysF, group.by = "predicted.subclass_label", reduction="umap", label = TRUE, repel=TRUE)
 DimPlot(mathysF, group.by = "batch", reduction="umap", label = TRUE, repel=TRUE)
 DimPlot(mathysF, reduction="umap", label = TRUE, repel=TRUE)
 DimPlot(mathysF, group.by = "predicted.class_label", reduction="umap", label = TRUE, repel=TRUE)
 
-mathysM <- FindNeighbors(mathysM, reduction = "pca", dims = 1:30)
-mathysM <- FindClusters(mathysM, verbose = TRUE)
+mathysM <- FindNeighbors(mathysM, reduction = "umap", dims = 1:2)
+mathysM <- FindClusters(mathysM, resolution = 0.05, verbose = TRUE)
 DimPlot(mathysM, group.by = "predicted.subclass_label", reduction="umap", label = TRUE, repel=TRUE)
 DimPlot(mathysM, group.by = "batch", reduction="umap", label = TRUE, repel=TRUE)
 DimPlot(mathysM, reduction="umap", label = TRUE, repel=TRUE)
@@ -69,52 +70,45 @@ DimPlot(mathysM, group.by = "predicted.class_label", reduction="umap", label = T
 
 #metadata <- glialcells@meta.data
 mathysF$clusters <- mathysF$seurat_clusters
-# mathysF$reclassify <- ifelse(mathysF$clusters==15, 'Micro-PVM',
-#                              ifelse(mathysF$clusters==8, 'Astro', 
-#                                     ifelse(mathysF$clusters==1|mathysF$clusters==4|mathysF$clusters==2, 'Oligo',
-#                                            ifelse(mathysF$clusters==12, 'OPC',
-#                                                   ifelse(mathysF$clusters==11|mathysF$clusters==18|mathysF$clusters==16|mathysF$clusters==10, 'In',
-#                                                       ifelse(mathysF$clusters==20|mathysF$clusters==21, 'other', 'Ex'))))))
-# table(mathysF$reclassify)
-# table(mathysF$predicted.subclass_label)
-# table(mathysF$predicted.class_label)
+mathysF$reclassify <- ifelse(mathysF$clusters==12, 'Micro-PVM',
+                             ifelse(mathysF$clusters==6, 'Astro',
+                                    ifelse(mathysF$clusters==0|mathysF$clusters==2, 'Oligo',
+                                           ifelse(mathysF$clusters==11, 'OPC',
+                                                  ifelse(mathysF$clusters==10|mathysF$clusters==16|mathysF$clusters==15|mathysF$clusters==9, 'In',
+                                                      ifelse(mathysF$clusters==19|mathysF$clusters==20|mathysF$clusters==21, 'other', 'Ex'))))))
+table(mathysF$reclassify)
+table(mathysF$predicted.subclass_label)
+table(mathysF$predicted.class_label)
 
 
 
 mathysM$clusters <- mathysM$seurat_clusters
-mathysM$reclassify <- ifelse(mathysM$clusters==16, 'Micro-PVM',
-                             ifelse(mathysM$clusters==8, 'Astro', 
-                                    ifelse(mathysM$clusters==0|mathysM$clusters==1, 'Oligo',
-                                           ifelse(mathysM$clusters==12, 'OPC',
-                                                  ifelse(mathysM$clusters==17|mathysM$clusters==14|mathysM$clusters==9|mathysM$clusters==5, 'In',
-                                                         ifelse(mathysM$clusters==20|mathysM$clusters==21, 'other', 'Ex'))))))
+mathysM$reclassify <- ifelse(mathysM$clusters==11, 'Micro-PVM',
+                             ifelse(mathysM$clusters==6, 'Astro', 
+                                    ifelse(mathysM$clusters==0, 'Oligo',
+                                           ifelse(mathysM$clusters==7, 'OPC',
+                                                  ifelse(mathysM$clusters==12|mathysM$clusters==9|mathysM$clusters==4|mathysM$clusters==5, 'In',
+                                                         ifelse(mathysM$clusters==15|mathysM$clusters==16|mathysM$clusters==17, 'other', 'Ex'))))))
 table(mathysM$reclassify)
 table(mathysM$predicted.subclass_label)
 table(mathysM$predicted.class_label)
 
+DimPlot(mathysF, group.by = "reclassify", reduction="umap", label = TRUE, repel=TRUE)
 DimPlot(mathysM, group.by = "reclassify", reduction="umap", label = TRUE, repel=TRUE)
 
-glialcells <- subset(mathysF, reclassify!='other')
-dim(glialcells)
-head(x=glialcells[[]])
-glial_metaF <- glialcells@meta.data
+#save seurat objects with new classifications, and matching metadata
 metadataF <- mathysF@meta.data
-saveRDS(glialcells, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_Seurat.RDS")
-saveRDS(glial_meta, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsF_metadata.RDS")
-#save all celltypes
-saveRDS(mathysF, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/allcellsF_Seurat.RDS")
-saveRDS(metadataF, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/allcellsF_metadata.RDS")
+saveRDS(mathysF, file="~/scRNAseq-subtype-mapping/data_objects/allcellsF_Seurat.RDS")
+saveRDS(metadataF, file="~/scRNAseq-subtype-mapping/data_objects/allcellsF_metadata.RDS")
 
-glialcells <- subset(mathysM, reclassify!='other')
-dim(glialcells)
-head(x=glialcells[[]])
-glial_meta <- glialcells@meta.data
 metadataM <- mathysM@meta.data
-saveRDS(glialcells, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_Seurat.RDS")
-saveRDS(glial_meta, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/glialcellsM_metadata.RDS")
-#save all celltypes in one
-saveRDS(mathysM, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/allcellsM_Seurat.RDS")
-saveRDS(metadataM, file="~/scRNAseq-subtype-mapping/scRNAseq-subtype-mapping/allcellsM_metadata.RDS")
+saveRDS(mathysM, file="~/scRNAseq-subtype-mapping/data_objects/allcellsM_Seurat.RDS")
+saveRDS(metadataM, file="~/scRNAseq-subtype-mapping/data_objects/allcellsM_metadata.RDS")
+
+
+
+
+
 
 
 
