@@ -27,10 +27,10 @@ RUN R -e "install.packages('remotes')" \
 && R -e "install.packages('Seurat')"\
 && R -e "install.packages('tidyverse')"\
 && R -e "devtools::install_github('cole-trapnell-lab/leidenbase')"\
-&& R -e "BiocManager::install('scran')\ 
-&& R -e "BiocManager::install('scater')\
-&& R -e "BiocManager::install('SingleCellExperiment')\
-&& R -e "BiocManager::install('batchelor')\
+&& R -e "BiocManager::install('scran')"\ 
+&& R -e "BiocManager::install('scater')"\
+&& R -e "BiocManager::install('SingleCellExperiment')"\
+&& R -e "BiocManager::install('batchelor')"
 
 run mkdir -p /home/lheath/celltype_mapping \ 
 && git clone https://github.com/lauraheath/scRNAseq-subtype-mapping.git /home/lheath/celltype_mapping
