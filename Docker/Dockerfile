@@ -3,7 +3,12 @@ FROM rocker/rstudio:4.1.0
 RUN apt-get update -y\
 && apt-get install -y dpkg-dev zlib1g-dev libssl-dev libffi-dev zlib1g-dev libbz2-dev liblzma-dev build-essential libglpk40\
 && apt-get install -y curl libcurl4-openssl-dev libxml2-dev libcairo2-dev libxt-dev r-cran-cairo libgsl-dev\
-&& apt-get install -y git\
+&& apt-get install -y git openssh-client nano less libxt6 libcurl4-openssl-dev python3 python3-pip
+
+RUN pip3 install synapseclient
+
+RUN R -e "install.packages('remotes')" \
+&& R -e "remotes::install_github('Sage-Bionetworks/sageseqr')"\
 && R -e "install.packages('BiocManager')"\
 && R -e "BiocManager::install('biomaRt')"\
 && R -e "BiocManager::install('monocle')"\
@@ -13,6 +18,7 @@ RUN apt-get update -y\
 && R -e "install.packages('synapser', repos = c('http://ran.synapse.org', 'http://cran.fhcrc.org'))"\
 && R -e "install.packages('devtools')"\
 && R -e "devtools::install_github('Sage-Bionetworks/knit2synapse')"\
+&& R -e "devtools::install_github('lhe17/nebula')"\
 && R -e "install.packages('knitr')"\
 && R -e "BiocManager::install('limma')"\
 && R -e "install.packages('Matrix')"\
@@ -21,8 +27,10 @@ RUN apt-get update -y\
 && R -e "install.packages('Seurat')"\
 && R -e "install.packages('tidyverse')"\
 && R -e "devtools::install_github('cole-trapnell-lab/leidenbase')"\
-&& R -e "BiocManager::install(c('scran', 'scater', 'SingleCellExperiment'))"
-
+&& R -e "BiocManager::install('scran')\ 
+&& R -e "BiocManager::install('scater')\
+&& R -e "BiocManager::install('SingleCellExperiment')\
+&& R -e "BiocManager::install('batchelor')\
 
 run mkdir -p /home/lheath/celltype_mapping \ 
 && git clone https://github.com/lauraheath/scRNAseq-subtype-mapping.git /home/lheath/celltype_mapping
