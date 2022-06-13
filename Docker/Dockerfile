@@ -22,7 +22,6 @@ RUN R -e "install.packages('remotes')" \
 && R -e "devtools::install_github('Sage-Bionetworks/knit2synapse')"\
 && R -e "devtools::install_github('lhe17/nebula')"\
 && R -e "devtools::install_github('satijalab/seurat-wrappers')"\
-&& R -e "devtools::install_github('HenrikBengtsson/matrixStats", ref="develop')"\
 && R -e "install.packages('knitr')"\
 && R -e "BiocManager::install('limma')"\
 && R -e "install.packages('Matrix')"\
