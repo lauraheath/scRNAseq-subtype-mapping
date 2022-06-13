@@ -30,10 +30,15 @@ names(colnames_counts)[names(colnames_counts) == "colnames(counts)"] <- "columnn
 mathys_metadata <- mathys_metadata[order(match(mathys_metadata$TAG, colnames_counts$columnnames)),]
 
 
-mathys2 <- CreateSeuratObject(counts = counts, project = "Clustering")
+mathys3 <- CreateSeuratObject(counts = counts, project = "Clustering")
+
+seurObj <- CreateSeuratObject(counts = counts)
+head(x=seurObj[[]])
+#get the UMI counts:
+UMIcounts <- seurObj@meta.data
 
 mathys2 <- AddMetaData(mathys2, mathys_metadata)
-head(x=mathys2[[]])
+head(x=mathys3[[]])
 
 #split into male and female data sets
 mathysF <- subset(x=mathys2, subset=sex=='female')
