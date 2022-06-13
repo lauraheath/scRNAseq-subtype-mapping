@@ -10,22 +10,25 @@ RUN pip3 install synapseclient
 RUN R -e "install.packages('remotes')" \
 && R -e "remotes::install_github('Sage-Bionetworks/sageseqr')"\
 && R -e "install.packages('BiocManager')"\
+&& R -e "install.packages('devtools')"\
+&& R -e "install.packages('R.utils')"\
 && R -e "BiocManager::install('biomaRt')"\
 && R -e "BiocManager::install('monocle')"\
+&& R -e "install.packages('tidyverse')"\
 && R -e "install.packages('caret')"\
 && R -e "install.packages('data.table')"\
 && R -e "install.packages('ggplot2')"\
 && R -e "install.packages('synapser', repos = c('http://ran.synapse.org', 'http://cran.fhcrc.org'))"\
-&& R -e "install.packages('devtools')"\
 && R -e "devtools::install_github('Sage-Bionetworks/knit2synapse')"\
 && R -e "devtools::install_github('lhe17/nebula')"\
+&& R -e "devtools::install_github('satijalab/seurat-wrappers')"\
+&& R -e "devtools::install_github('HenrikBengtsson/matrixStats", ref="develop')"\
 && R -e "install.packages('knitr')"\
 && R -e "BiocManager::install('limma')"\
 && R -e "install.packages('Matrix')"\
 && R -e "install.packages('patchwork')"\
 && R -e "install.packages('RColorBrewer')"\
 && R -e "install.packages('Seurat')"\
-&& R -e "install.packages('tidyverse')"\
 && R -e "devtools::install_github('cole-trapnell-lab/leidenbase')"\
 && R -e "BiocManager::install('scran')"\ 
 && R -e "BiocManager::install('scater')"\
