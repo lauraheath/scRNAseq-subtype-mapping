@@ -8,7 +8,6 @@ RUN apt-get update -y\
 RUN pip3 install synapseclient
 
 RUN R -e "install.packages('remotes')" \
-&& R -e "remotes::install_github('Sage-Bionetworks/sageseqr')"\
 && R -e "install.packages('BiocManager')"\
 && R -e "install.packages('devtools')"\
 && R -e "install.packages('R.utils')"\
