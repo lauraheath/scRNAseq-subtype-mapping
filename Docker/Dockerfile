@@ -18,7 +18,6 @@ RUN R -e "install.packages('remotes')" \
 && R -e "install.packages('data.table')"\
 && R -e "install.packages('ggplot2')"\
 && R -e "install.packages('synapser', repos = c('http://ran.synapse.org', 'http://cran.fhcrc.org'))"\
-&& R -e "devtools::install_github('Sage-Bionetworks/knit2synapse')"\
 && R -e "devtools::install_github('lhe17/nebula')"\
 && R -e "devtools::install_github('satijalab/seurat-wrappers')"\
 && R -e "install.packages('knitr')"\
